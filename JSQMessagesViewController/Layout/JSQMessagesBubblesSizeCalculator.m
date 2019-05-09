@@ -116,23 +116,33 @@
         CGFloat horizontalInsetsTotal = horizontalContainerInsets + horizontalFrameInsets + spacingBetweenAvatarAndBubble;
         CGFloat maximumTextWidth = [self textBubbleWidthForLayout:layout] - avatarSize.width - layout.messageBubbleLeftRightMargin - horizontalInsetsTotal;
 
+        
         CGRect stringRect = [[messageData text] boundingRectWithSize:CGSizeMake(maximumTextWidth, CGFLOAT_MAX)
                                                              options:(NSStringDrawingUsesLineFragmentOrigin | NSStringDrawingUsesFontLeading)
                                                           attributes:@{ NSFontAttributeName : layout.messageBubbleFont }
                                                              context:nil];
-
+        
+        CGRect onelineStringRect = [[messageData text] boundingRectWithSize:CGSizeMake(CGFLOAT_MAX, CGFLOAT_MAX)
+                                                                    options:(NSStringDrawingUsesLineFragmentOrigin | NSStringDrawingUsesFontLeading)
+                                                                 attributes:@{ NSFontAttributeName : layout.messageBubbleFont }
+                                                                    context:nil];
+        
         CGSize stringSize = CGRectIntegral(stringRect).size;
-
+        CGSize onelineStringSize = CGRectIntegral(onelineStringRect).size;
+        
         CGFloat verticalContainerInsets = layout.messageBubbleTextViewTextContainerInsets.top + layout.messageBubbleTextViewTextContainerInsets.bottom;
         CGFloat verticalFrameInsets = layout.messageBubbleTextViewFrameInsets.top + layout.messageBubbleTextViewFrameInsets.bottom;
-
+        
         //  add extra 2 points of space (`self.additionalInset`), because `boundingRectWithSize:` is slightly off
         //  not sure why. magix. (shrug) if you know, submit a PR
         CGFloat verticalInsets = verticalContainerInsets + verticalFrameInsets + self.additionalInset;
-
-        //  same as above, an extra 2 points of magix
-        CGFloat finalWidth = MAX(stringSize.width + horizontalInsetsTotal, self.minimumBubbleWidth) + self.additionalInset;
-
+        
+        CGFloat widthToUse = stringSize.width;
+        if (stringSize.height > onelineStringSize.height) {
+            widthToUse = maximumTextWidth;
+        }
+        
+        CGFloat finalWidth = MAX(widthToUse + horizontalInsetsTotal - spacingBetweenAvatarAndBubble, self.minimumBubbleWidth);
         finalSize = CGSizeMake(finalWidth, stringSize.height + verticalInsets);
     }
 
